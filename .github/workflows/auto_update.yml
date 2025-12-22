@@ -1,0 +1,32 @@
+name: Daily Price Update
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天北京时间早上8点运行
+  workflow_dispatch:      # 允许你手动点击按钮运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 使用 GitHub 提供的虚拟电脑
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3 # 把仓库里的 hello.py 下载到虚拟电脑
+
+      - name: 设置 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 安装必要的库
+        run: pip install requests beautifulsoup4 # 安装你的爬虫工具
+
+      - name: 运行爬虫
+        run: python hello.py # 执行你刚才写的脚本
+
+      - name: 提交并推送数据
+        run: |
+          git config --global user.name "DataBot"
+          git config --global user.email "bot@github.com"
+          git add data.json
+          git commit -m "自动更新价格: $(date +'%Y-%m-%d')" || exit 0
+          git push # 将生成的 data.json 存回你的仓库
